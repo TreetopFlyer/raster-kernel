@@ -9,54 +9,49 @@
     <body>
         <div>
             <input type="file">
-            <img class="In" src=""/>
             <canvas class="In"></canvas>
             <canvas class="Out"></canvas>
-            <img class="Out" src=""/>
         </div>
 <script>
 
-var JQ = {
-    Input: $("input[type='file']"),
-    ImageIn: $("img.In"),
-    ImageOut: $("img.Out"),
-    CanvasIn: $("canvas.In"),
-    CanvasOut: $("canvas.Out")
-};
 
-JQ.Input.change(function(inEvent)
+var CanvasIn = $("canvas.In").get(0);
+var CanvasOut = $("canvas.Out").get(0);
+var ContextIn = CanvasIn.getContext('2d');
+var ContextOut = CanvasIn.getContext('2d');
+
+$("input[type='file']").change(function(inEvent)
 {
     inEvent.stopImmediatePropagation();
     var parser = new FileReader();
+
     parser.onload = function(inEvent)
     {
-        JQ.ImageIn.attr("src", parser.result);
+        var img;
+        img = new Image();
+        img.onload = function()
+        {
+            CanvasIn.width = img.width;
+            CanvasIn.height = img.height;
+            ContextIn.drawImage(img, 0, 0);
+
+            //////////
+            var imageDataIn = ContextIn.getImageData(0, 0, img.width, img.height);
+            var vector = obj.BytesToVector(imageDataIn);
+            var imageDataOut = obj.VectorToBytes(vector, img.width, img.height);
+            CanvasOut.width = img.width;
+            CanvasOut.height = img.height;
+            ContextOut.putImageData(imageDataOut, 0, 0);
+        }
+        img.src = parser.result;
     };
     parser.readAsDataURL(inEvent.target.files[0]);
 });
 
-JQ.ImageIn.get(0).onload = function()
+function Draw()
 {
-    var jsCanvas, jsImage, jsContext;
 
-    jsCanvas = JQ.CanvasIn.get(0);
-    jsImage = JQ.ImageIn.get(0);
-    jsContext = jsCanvas.getContext('2d');
-
-    jsCanvas.width = jsImage.width;
-    jsCanvas.height = jsImage.height;
-    jsContext.drawImage(jsImage, 0, 0);
-
-    //////////
-    var imageDataIn = jsContext.getImageData(0, 0, jsCanvas.width, jsCanvas.height);
-    var vector = obj.BytesToVector(imageDataIn);
-    var imageDataOut = obj.VectorToBytes(vector, jsImage.width, jsImage.height);
-    var jsCanvasOut = JQ.CanvasOut.get(0);
-    jsCanvasOut.width = jsImage.width;
-    jsCanvasOut.height = jsImage.height;
-    jsContextOut = jsCanvasOut.getContext('2d');
-    jsContextOut.putImageData(imageDataOut, 0, 0);
-};
+}
 
 var obj = {};
 obj.BytesToVector = function(inBytes)
