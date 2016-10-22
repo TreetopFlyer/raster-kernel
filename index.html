@@ -15,22 +15,27 @@
 <script>
 
 
-var CanvasIn = $("canvas.In").get(0);
-var CanvasOut = $("canvas.Out").get(0);
-var ContextIn = CanvasIn.getContext('2d');
-var ContextOut = CanvasOut.getContext('2d');
 
-ContextOut.mozImageSmoothingEnabled = false;
-ContextOut.imageSmoothingEnabled = false;
+var Config = {
 
-var BytesIn;
-var BytesOut;
-var WidthIn = 6;
-var HeightIn = 6;
-var WidthOut = 6;
-var HeightOut = 6;
-var RowIn = 0;
-var RowOut = 0;
+    /*sample size*/
+    WidthIn : 6,
+    HeightIn : 6,
+
+    /*drawing size*/
+    WidthOut : 6,
+    HeightOut : 6,
+
+    /*scanner position*/
+    RowIn : 0,
+    RowOut : 0,
+
+    /*canvases*/
+    CanvasIn : $("canvas.In").get(0),
+    CanvasOut : $("canvas.Out").get(0),
+}
+Config.ContextIn = Config.CanvasIn.getContext('2d'),
+Config.ContextOut = Config.CanvasOut.getContext('2d')
 
 $("input[type='file']").change(function(inEvent)
 {
@@ -43,16 +48,16 @@ $("input[type='file']").change(function(inEvent)
         img = new Image();
         img.onload = function()
         {
-            var divisionsWidth = Math.floor(img.width / WidthIn);
-            var divisionsHeight = Math.floor(img.height / HeightIn);
+            var divisionsWidth = Math.floor(img.width / Config.WidthIn);
+            var divisionsHeight = Math.floor(img.height / Config.HeightIn);
 
-            CanvasIn.width = divisionsWidth * WidthIn;
-            CanvasIn.height = divisionsHeight * HeightIn;
+            Config.CanvasIn.width = divisionsWidth * Config.WidthIn;
+            Config.CanvasIn.height = divisionsHeight * Config.HeightIn;
             
-            CanvasOut.width = divisionsWidth * WidthOut;
-            CanvasOut.height = divisionsHeight * HeightOut;
+            Config.CanvasOut.width = divisionsWidth * Config.WidthOut;
+            Config.CanvasOut.height = divisionsHeight * Config.HeightOut;
 
-            ContextIn.drawImage(img, 0, 0); //now the canvas can be sampled
+            Config.ContextIn.drawImage(img, 0, 0); //now the canvas can be sampled
 
             for(var i=0; i<100; i++)
             {
@@ -80,13 +85,13 @@ function ProcessRow()
     green = [0, 255, 0, 255];
     blue =  [0, 0, 255, 255];
 
-    buffer = new Uint8ClampedArray(CanvasOut.width*HeightOut*4);
-    samples = WidthIn*HeightIn*255;
+    buffer = new Uint8ClampedArray(Config.CanvasOut.width*Config.HeightOut*4);
+    samples = Config.WidthIn*Config.HeightIn*255;
 
-    for(i=0; i<CanvasIn.width; i+=WidthIn)
+    for(i=0; i<Config.CanvasIn.width; i+=Config.WidthIn)
     {
         histo = [0, 0, 0];
-        sample = ContextIn.getImageData(i, RowIn, WidthIn, HeightIn);
+        sample = Config.ContextIn.getImageData(i, Config.RowIn, Config.WidthIn, Config.HeightIn);
         for(j=0; j<sample.data.length; j+=4)
         {
             histo[0] += sample.data[j+0];
@@ -95,86 +100,56 @@ function ProcessRow()
         }
 
         // snap the histogram
-        histo[0] = Math.floor((histo[0]/samples)*HeightOut);
-        histo[1] = Math.floor((histo[1]/samples)*HeightOut);
-        histo[2] = Math.floor((histo[2]/samples)*HeightOut);
+        histo[0] = Math.floor((histo[0]/samples)*Config.HeightOut);
+        histo[1] = Math.floor((histo[1]/samples)*Config.HeightOut);
+        histo[2] = Math.floor((histo[2]/samples)*Config.HeightOut);
         
         //////////
-        var outIndex = (i / WidthIn) * WidthOut;
+        var outIndex = (i/Config.WidthIn) * Config.WidthOut;
         var shift;
         for(j=0; j<histo[0]; j++)
         {
             shift = j%2;
-            SetBufferPixel(outIndex+0+shift, j, red, buffer, CanvasOut.width);
-            SetBufferPixel(outIndex+1+shift, j, red, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+0+shift, j, red, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+1+shift, j, red, buffer, Config.CanvasOut.width);
         }
 
         for(j=0; j<histo[1]; j++)
         {
             shift = j%2;
-            SetBufferPixel(outIndex+2+shift, j, green, buffer, CanvasOut.width);
-            SetBufferPixel(outIndex+3+shift, j, green, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+2+shift, j, green, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+3+shift, j, green, buffer, Config.CanvasOut.width);
         }
 
         for(j=0; j<histo[2]; j++)
         {
             shift = j%2;
-            SetBufferPixel(outIndex+4+shift, j, blue, buffer, CanvasOut.width);
-            SetBufferPixel(outIndex+5+shift, j, blue, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+4+shift, j, blue, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+5+shift, j, blue, buffer, Config.CanvasOut.width);
         }
 
 
     }
 
-    ContextOut.putImageData(new ImageData(buffer, CanvasOut.width, HeightOut), 0, RowOut);
-
-    RowIn += HeightIn;
-    RowOut += HeightOut;
+    Config.ContextOut.putImageData(new ImageData(buffer, Config.CanvasOut.width, Config.HeightOut), 0, Config.RowOut);
+    Config.RowIn += Config.HeightIn;
+    Config.RowOut += Config.HeightOut;
 }
 
 
 function SetBufferPixel(inX, inY, in4Channel, inBuffer, inWidth)
 {
     var index;
-
     if(inX < 0 || inX > inWidth-1)
     {
         return;
     }
-
     index = inX*4 + inY*inWidth*4;
     inBuffer[index+0] = in4Channel[0];
     inBuffer[index+1] = in4Channel[1];
     inBuffer[index+2] = in4Channel[2];
     inBuffer[index+3] = in4Channel[3];
 }
-
-var obj = {};
-obj.BytesToVector = function(inBytes)
-{
-    var out;
-    var i;
-    out = [];
-    for(i=0; i<inBytes.data.length; i+=4)
-    {
-        out.push(inBytes.data[i]/255);
-    }
-    return out;
-};
-obj.VectorToBytes = function(inVector, inWidth, inHeight)
-{
-    var data;
-    data = new Uint8ClampedArray(inWidth*inHeight*4);
-    for(i=0; i<inVector.length; i++)
-    {
-        value = inVector[i]*255;
-        data[(i*4)+0] = value;
-        data[(i*4)+1] = value;
-        data[(i*4)+2] = value;
-        data[(i*4)+3] = 255;
-    }
-    return new ImageData(data, inWidth, inHeight);
-};
 
 
 </script>
