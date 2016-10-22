@@ -6,7 +6,7 @@
         -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     </head>
-    <body>
+    <body style="background:#000;">
         <div>
             <input type="file">
             <canvas class="In"></canvas>
@@ -20,12 +20,15 @@ var CanvasOut = $("canvas.Out").get(0);
 var ContextIn = CanvasIn.getContext('2d');
 var ContextOut = CanvasOut.getContext('2d');
 
+ContextOut.mozImageSmoothingEnabled = false;
+ContextOut.imageSmoothingEnabled = false;
+
 var BytesIn;
 var BytesOut;
-var WidthIn = 3;
-var HeightIn = 3;
-var WidthOut = 3;
-var HeightOut = 4;
+var WidthIn = 6;
+var HeightIn = 6;
+var WidthOut = 6;
+var HeightOut = 6;
 var RowIn = 0;
 var RowOut = 0;
 
@@ -50,6 +53,12 @@ $("input[type='file']").change(function(inEvent)
             CanvasOut.height = divisionsHeight * HeightOut;
 
             ContextIn.drawImage(img, 0, 0); //now the canvas can be sampled
+
+            for(var i=0; i<100; i++)
+            {
+                ProcessRow();
+            }
+
         }
         img.src = parser.result;
     };
@@ -65,6 +74,12 @@ function ProcessRow()
     var samples;
     var buffer;
     
+    var red, green, blue;
+    
+    red =   [255, 0, 0, 255];
+    green = [0, 255, 0, 255];
+    blue =  [0, 0, 255, 255];
+
     buffer = new Uint8ClampedArray(CanvasOut.width*HeightOut*4);
     samples = WidthIn*HeightIn*255;
 
@@ -85,11 +100,29 @@ function ProcessRow()
         histo[2] = Math.floor((histo[2]/samples)*HeightOut);
         
         //////////
-
         var outIndex = (i / WidthIn) * WidthOut;
-        SetBufferPixel(outIndex+0, 0, [255, 0, 0, 255], buffer, CanvasOut.width);
-        SetBufferPixel(outIndex+1, 0, [0, 255, 0, 255], buffer, CanvasOut.width);
-        SetBufferPixel(outIndex+2, 0, [0, 0, 255, 255], buffer, CanvasOut.width);
+        var shift;
+        for(j=0; j<histo[0]; j++)
+        {
+            shift = j%2;
+            SetBufferPixel(outIndex+0+shift, j, red, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+1+shift, j, red, buffer, CanvasOut.width);
+        }
+
+        for(j=0; j<histo[1]; j++)
+        {
+            shift = j%2;
+            SetBufferPixel(outIndex+2+shift, j, green, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+3+shift, j, green, buffer, CanvasOut.width);
+        }
+
+        for(j=0; j<histo[2]; j++)
+        {
+            shift = j%2;
+            SetBufferPixel(outIndex+4+shift, j, blue, buffer, CanvasOut.width);
+            SetBufferPixel(outIndex+5+shift, j, blue, buffer, CanvasOut.width);
+        }
+
 
     }
 
@@ -104,7 +137,7 @@ function SetBufferPixel(inX, inY, in4Channel, inBuffer, inWidth)
 {
     var index;
 
-    if(inX < 0 || inX > inWidth)
+    if(inX < 0 || inX > inWidth-1)
     {
         return;
     }
