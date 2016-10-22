@@ -18,7 +18,16 @@
 var CanvasIn = $("canvas.In").get(0);
 var CanvasOut = $("canvas.Out").get(0);
 var ContextIn = CanvasIn.getContext('2d');
-var ContextOut = CanvasIn.getContext('2d');
+var ContextOut = CanvasOut.getContext('2d');
+
+var BytesIn;
+var BytesOut;
+var WidthIn = 3;
+var HeightIn = 3;
+var WidthOut = 3;
+var HeightOut = 4;
+var RowIn = 0;
+var RowOut = 0;
 
 $("input[type='file']").change(function(inEvent)
 {
@@ -31,26 +40,80 @@ $("input[type='file']").change(function(inEvent)
         img = new Image();
         img.onload = function()
         {
-            CanvasIn.width = img.width;
-            CanvasIn.height = img.height;
-            ContextIn.drawImage(img, 0, 0);
+            var divisionsWidth = Math.floor(img.width / WidthIn);
+            var divisionsHeight = Math.floor(img.height / HeightIn);
 
-            //////////
-            var imageDataIn = ContextIn.getImageData(0, 0, img.width, img.height);
-            var vector = obj.BytesToVector(imageDataIn);
-            var imageDataOut = obj.VectorToBytes(vector, img.width, img.height);
-            CanvasOut.width = img.width;
-            CanvasOut.height = img.height;
-            ContextOut.putImageData(imageDataOut, 0, 0);
+            CanvasIn.width = divisionsWidth * WidthIn;
+            CanvasIn.height = divisionsHeight * HeightIn;
+            
+            CanvasOut.width = divisionsWidth * WidthOut;
+            CanvasOut.height = divisionsHeight * HeightOut;
+
+            ContextIn.drawImage(img, 0, 0); //now the canvas can be sampled
         }
         img.src = parser.result;
     };
     parser.readAsDataURL(inEvent.target.files[0]);
 });
 
-function Draw()
-{
 
+function ProcessRow()
+{
+    var i, j, k;
+    var histo;
+    var sample;
+    var samples;
+    var buffer;
+    
+    buffer = new Uint8ClampedArray(CanvasOut.width*HeightOut*4);
+    samples = WidthIn*HeightIn*255;
+
+    for(i=0; i<CanvasIn.width; i+=WidthIn)
+    {
+        histo = [0, 0, 0];
+        sample = ContextIn.getImageData(i, RowIn, WidthIn, HeightIn);
+        for(j=0; j<sample.data.length; j+=4)
+        {
+            histo[0] += sample.data[j+0];
+            histo[1] += sample.data[j+1];
+            histo[2] += sample.data[j+2];
+        }
+
+        // snap the histogram
+        histo[0] = Math.floor((histo[0]/samples)*HeightOut);
+        histo[1] = Math.floor((histo[1]/samples)*HeightOut);
+        histo[2] = Math.floor((histo[2]/samples)*HeightOut);
+        
+        //////////
+
+        var outIndex = (i / WidthIn) * WidthOut;
+        SetBufferPixel(outIndex+0, 0, [255, 0, 0, 255], buffer, CanvasOut.width);
+        SetBufferPixel(outIndex+1, 0, [0, 255, 0, 255], buffer, CanvasOut.width);
+        SetBufferPixel(outIndex+2, 0, [0, 0, 255, 255], buffer, CanvasOut.width);
+
+    }
+
+    ContextOut.putImageData(new ImageData(buffer, CanvasOut.width, HeightOut), 0, RowOut);
+
+    RowIn += HeightIn;
+    RowOut += HeightOut;
+}
+
+
+function SetBufferPixel(inX, inY, in4Channel, inBuffer, inWidth)
+{
+    var index;
+
+    if(inX < 0 || inX > inWidth)
+    {
+        return;
+    }
+
+    index = inX*4 + inY*inWidth*4;
+    inBuffer[index+0] = in4Channel[0];
+    inBuffer[index+1] = in4Channel[1];
+    inBuffer[index+2] = in4Channel[2];
+    inBuffer[index+3] = in4Channel[3];
 }
 
 var obj = {};
