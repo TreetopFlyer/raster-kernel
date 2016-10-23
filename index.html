@@ -23,7 +23,7 @@ var Config = {
     HeightIn : 6,
 
     /*drawing size*/
-    WidthOut : 9,
+    WidthOut : 6,
     HeightOut : 6,
 
     /*scanner position*/
@@ -113,9 +113,9 @@ function ProcessRow()
         }
 
         // snap the histogram
-        histo[0] = Math.floor((histo[0]/samples)*(Config.HeightOut/2));
-        histo[1] = Math.floor((histo[1]/samples)*(Config.HeightOut/2));
-        histo[2] = Math.floor((histo[2]/samples)*(Config.HeightOut/2));
+        histo[0] = Math.floor((histo[0]/samples)*(Config.HeightOut));
+        histo[1] = Math.floor((histo[1]/samples)*(Config.HeightOut));
+        histo[2] = Math.floor((histo[2]/samples)*(Config.HeightOut));
         
         //////////
         var outIndex = (i/Config.WidthIn) * Config.WidthOut;
@@ -124,43 +124,25 @@ function ProcessRow()
         for(j=0; j<histo[0]; j++)
         {
             shift = j%2;
-            height = j*2;
 
-            SetBufferPixel(outIndex+0+shift, height+0, red, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+1+shift, height+0, red, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+2+shift, height+0, red, buffer, Config.CanvasOut.width);
-
-            SetBufferPixel(outIndex+0+shift, height+1, red, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+1+shift, height+1, red, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+2+shift, height+1, red, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+0+shift, j, red, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+1+shift, j, red, buffer, Config.CanvasOut.width);
         }
 
         for(j=0; j<histo[1]; j++)
         {
             shift = j%2;
-            height = j*2;
 
-            SetBufferPixel(outIndex+3+shift, height+0, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+4+shift, height+0, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+5+shift, height+0, green, buffer, Config.CanvasOut.width);
-
-            SetBufferPixel(outIndex+3+shift, height+1, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+4+shift, height+1, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+5+shift, height+1, green, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+2+shift, j, green, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+3+shift, j, green, buffer, Config.CanvasOut.width);
         }
 
         for(j=0; j<histo[2]; j++)
         {
             shift = j%2;
-            height = j*2;
 
-            SetBufferPixel(outIndex+6+shift, height+0, blue, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+7+shift, height+0, blue, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+8+shift, height+0, blue, buffer, Config.CanvasOut.width);
-
-            SetBufferPixel(outIndex+3+shift, height+1, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+4+shift, height+1, green, buffer, Config.CanvasOut.width);
-            SetBufferPixel(outIndex+5+shift, height+1, green, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+4+shift, j, blue, buffer, Config.CanvasOut.width);
+            SetBufferPixel(outIndex+5+shift, j, blue, buffer, Config.CanvasOut.width);
         }
 
 
