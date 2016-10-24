@@ -19,8 +19,8 @@
 var Config = {
 
     /*sample size*/
-    WidthIn : 6,
-    HeightIn : 6,
+    WidthIn : 20,
+    HeightIn : 20,
 
     /*drawing size*/
     WidthOut : 6,
@@ -123,7 +123,7 @@ function ProcessRow()
         var height;
         for(j=0; j<histo[0]; j++)
         {
-            shift = j%2;
+            shift = 0;
 
             SetBufferPixel(outIndex+0+shift, j, red, buffer, Config.CanvasOut.width);
             SetBufferPixel(outIndex+1+shift, j, red, buffer, Config.CanvasOut.width);
@@ -131,7 +131,7 @@ function ProcessRow()
 
         for(j=0; j<histo[1]; j++)
         {
-            shift = j%2;
+            shift = 0;
 
             SetBufferPixel(outIndex+2+shift, j, green, buffer, Config.CanvasOut.width);
             SetBufferPixel(outIndex+3+shift, j, green, buffer, Config.CanvasOut.width);
@@ -139,7 +139,7 @@ function ProcessRow()
 
         for(j=0; j<histo[2]; j++)
         {
-            shift = j%2;
+            shift = 0;
 
             SetBufferPixel(outIndex+4+shift, j, blue, buffer, Config.CanvasOut.width);
             SetBufferPixel(outIndex+5+shift, j, blue, buffer, Config.CanvasOut.width);
